@@ -1,0 +1,26 @@
+#define water_level_pin 14 // 물 레벨 센서 핀 번호
+#define temp_sensor_pin A1 // 온도 센서 핀 번호
+
+void setup() {
+  Serial.begin(9600); // 시리얼 통신 초기화
+  pinMode(water_level_pin, INPUT); // 물 레벨 센서 핀 설정
+  pinMode(temp_sensor_pin, INPUT); // 온도 센서 핀 설정
+}
+
+void loop() {
+  // 물 레벨 값 읽기
+  int water_level_value = analogRead(water_level_pin);
+  
+  // 온도 센서 값 읽기
+  int temp_sensor_value = analogRead(temp_sensor_pin);
+
+  // 온도 계산 (LM35 기준)
+  float temperature = (temp_sensor_value * 5.0 / 1023.0) * 100.0;
+
+  // 데이터를 시리얼 포트로 전송 (CSV 형식으로)
+  Serial.print(water_level_value);
+  Serial.print(","); // 값 구분자
+  Serial.println(temperature); // 값 끝에는 줄 바꿈
+
+  delay(500); // 0.5초 간격으로 전송
+}
