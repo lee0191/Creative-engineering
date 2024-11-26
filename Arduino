@@ -1,26 +1,35 @@
-#define water_level_pin 14 // 물 레벨 센서 핀 번호
-#define temp_sensor_pin A1 // 온도 센서 핀 번호
+#include <Adafruit_NeoPixel.h>
+
+#define PIN 12         // 네오픽셀 데이터 핀
+#define NUMPIXELS 6    // LED 개수
+
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+#define WATER_LEVEL_PIN A0 // 물 높이 센서 핀
+#define TEMP_SENSOR_PIN A1 // 온도 센서 핀
 
 void setup() {
-  Serial.begin(9600); // 시리얼 통신 초기화
-  pinMode(water_level_pin, INPUT); // 물 레벨 센서 핀 설정
-  pinMode(temp_sensor_pin, INPUT); // 온도 센서 핀 설정
+  pixels.begin();
+  pixels.setBrightness(50);
 }
 
 void loop() {
-  // 물 레벨 값 읽기
-  int water_level_value = analogRead(water_level_pin);
-  
-  // 온도 센서 값 읽기
-  int temp_sensor_value = analogRead(temp_sensor_pin);
+  // 센서 데이터 읽기
+  int waterLevel = analogRead(WATER_LEVEL_PIN); // 0~1023
+  int temperature = analogRead(TEMP_SENSOR_PIN); // 0~1023
 
-  // 온도 계산 (LM35 기준)
-  float temperature = (temp_sensor_value * 5.0 / 1023.0) * 100.0;
-
-  // 데이터를 시리얼 포트로 전송 (CSV 형식으로)
-  Serial.print(water_level_value);
-  Serial.print(","); // 값 구분자
-  Serial.println(temperature); // 값 끝에는 줄 바꿈
-
-  delay(500); // 0.5초 간격으로 전송
+  // 물 높이에 따라 LED 채우기
+  int activeLEDs = map(waterLevel, 0, 700, 0, NUMPIXELS);
+  for (int i = 0; i < NUMPIXELS; i++) {
+    if (i < activeLEDs) {
+      // 온도에 따라 색상 변경
+      if (temperature > 700) pixels.setPixelColor(i, pixels.Color(255, 0, 0)); // 높은 온도: 빨간색
+      else if (temperature > 400) pixels.setPixelColor(i, pixels.Color(0, 255, 0)); // 중간 온도: 녹색
+      else pixels.setPixelColor(i, pixels.Color(0, 0, 255)); // 낮은 온도: 파란색
+    } else {
+      pixels.setPixelColor(i, pixels.Color(0, 0, 0)); // 남은 LED는 끄기
+    }
+  }
+  pixels.show();
+  delay(100);
 }
